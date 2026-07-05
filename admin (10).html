@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — စာကြည့်တိုက်</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Myanmar:wght@600;700&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#151f1c; --ink-2:#1c2a26; --ink-3:#233531;
+    --lacquer:#a6432a; --lacquer-light:#c85a3d;
+    --gold:#c9a227; --gold-soft:#e6c65a;
+    --paper:#f1e9d8;
+    --text:#f1e9d8; --muted:#9db0a9;
+    --line: rgba(241,233,216,0.1);
+    --ok:#6fbf73; --warn:#c9a227; --bad:#c85a3d;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--ink); color:var(--text); font-family:'Noto Sans Myanmar', sans-serif; }
+  h1,h2,h3{ font-family:'Noto Serif Myanmar', serif; margin:0; }
+  button, input, textarea, select{ font-family:inherit; }
+
+  /* ---------- LOGIN ---------- */
+  #loginScreen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .login-card{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:16px; padding:40px 34px;
+    width:100%; max-width:360px; text-align:center;
+  }
+  .login-card .mark{
+    width:48px; height:48px; border-radius:10px; margin:0 auto 18px;
+    background:linear-gradient(135deg, var(--gold), var(--lacquer));
+    display:flex; align-items:center; justify-content:center; color:var(--ink); font-weight:700; font-size:20px;
+  }
+  .login-card h1{ font-size:20px; margin-bottom:6px; }
+  .login-card p{ color:var(--muted); font-size:13px; margin:0 0 24px; }
+  .field{ text-align:left; margin-bottom:16px; }
+  .field label{ display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; }
+  .field input, .field textarea, .field select{
+    width:100%; background:var(--ink-3); border:1px solid var(--line); color:var(--text);
+    padding:11px 14px; border-radius:8px; font-size:14px; outline:none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--gold); }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--gold); color:var(--ink); border:none; padding:12px 22px; border-radius:999px;
+    font-weight:600; font-size:14px; cursor:pointer; width:100%; transition:background .2s, opacity .2s;
+  }
+  .btn:hover{ background:var(--gold-soft); }
+  .btn.secondary{ background:var(--ink-3); color:var(--text); border:1px solid var(--line); }
+  .btn.danger{ background:var(--lacquer); color:#fff; }
+  .btn.small{ width:auto; padding:8px 16px; font-size:12.5px; }
+  .error-text{ color:var(--bad); font-size:12.5px; margin-top:10px; min-height:16px; }
+
+  /* ---------- APP SHELL ---------- */
+  #app{ display:none; min-height:100vh; }
+  .sidebar{
+    width:230px; background:var(--ink-2); border-right:1px solid var(--line);
+    position:fixed; top:0; bottom:0; left:0; padding:26px 18px; display:flex; flex-direction:column;
+  }
+  .sidebar .brand{ display:flex; align-items:center; gap:10px; font-family:'Noto Serif Myanmar', serif; font-weight:700; font-size:17px; margin-bottom:34px; }
+  .sidebar .brand .mark{ width:30px;height:30px;border-radius:7px; background:linear-gradient(135deg, var(--gold), var(--lacquer)); display:flex;align-items:center;justify-content:center; color:var(--ink); font-size:14px; }
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:8px; color:var(--muted);
+    cursor:pointer; font-size:14px; margin-bottom:4px; transition: background .15s, color .15s;
+  }
+  .nav-item:hover{ background:var(--ink-3); color:var(--text); }
+  .nav-item.active{ background:var(--ink-3); color:var(--gold-soft); font-weight:600; }
+  .nav-item .badge-count{
+    margin-left:auto; background:var(--lacquer); color:#fff; font-size:10.5px; padding:2px 7px; border-radius:999px;
+  }
+  .sidebar-footer{ margin-top:auto; }
+
+  .main{ margin-left:230px; padding:34px 40px; max-width:1100px; }
+  @media (max-width:760px){ .sidebar{ position:static; width:auto; border-right:none; border-bottom:1px solid var(--line); flex-direction:row; flex-wrap:wrap; padding:16px 20px; } .main{ margin-left:0; padding:24px 18px; } .sidebar .brand{ margin-bottom:0; margin-right:auto; } .sidebar-footer{ margin-top:0; } }
+
+  .page{ display:none; }
+  .page.active{ display:block; }
+  .page-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:14px; }
+  .page-head h2{ font-size:24px; }
+  .page-head p{ color:var(--muted); font-size:13.5px; margin:4px 0 0; }
+
+  .card-panel{ background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius); padding:22px; margin-bottom:20px; }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--line); }
+  td{ padding:12px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:middle; }
+  tr:last-child td{ border-bottom:none; }
+  .row-title{ font-weight:600; }
+  .row-sub{ color:var(--muted); font-size:12px; margin-top:2px; }
+  .tag{ font-size:11px; padding:3px 10px; border-radius:999px; font-weight:600; }
+  .tag.free{ background:rgba(111,191,115,0.18); color:var(--ok); }
+  .tag.premium{ background:rgba(201,162,39,0.18); color:var(--gold-soft); }
+  .tag.pending{ background:rgba(201,162,39,0.18); color:var(--gold-soft); }
+  .tag.approved{ background:rgba(111,191,115,0.18); color:var(--ok); }
+  .tag.rejected{ background:rgba(200,90,61,0.18); color:var(--lacquer-light); }
+  .row-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .icon-btn{
+    background:var(--ink-3); border:1px solid var(--line); color:var(--text); width:32px; height:32px;
+    border-radius:7px; cursor:pointer; font-size:13px; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ border-color:var(--gold); }
+  .empty-row{ text-align:center; color:var(--muted); padding:40px 12px; font-size:13.5px; }
+  code.mono{ font-family:monospace; font-size:12px; word-break:break-all; }
+
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(10,14,12,0.75); display:none; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:14px; width:100%; max-width:520px;
+    max-height:88vh; overflow-y:auto; padding:28px;
+  }
+  .modal-box h3{ font-size:18px; margin-bottom:18px; }
+  .form-actions{ display:flex; gap:10px; margin-top:22px; }
+  .form-actions .btn{ width:auto; flex:1; }
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--gold); color:var(--ink); padding:12px 22px; border-radius:999px;
+    font-size:13.5px; font-weight:600; opacity:0; pointer-events:none; transition:all .3s; z-index:200;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.err{ background:var(--lacquer); color:#fff; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:24px; }
+  .stat-box{ background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; }
+  .stat-box .num{ font-family:'Noto Serif Myanmar', serif; font-size:28px; font-weight:700; color:var(--gold-soft); }
+  .stat-box .label{ font-size:12.5px; color:var(--muted); margin-top:4px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="mark">စ</div>
+    <h1>Admin Login</h1>
+    <p>စာအုပ်များနှင့် User Approval များ စီမံရန်</p>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn" onclick="doLogin()">ဝင်မယ်</button>
+    <div class="error-text" id="loginError"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="sidebar">
+    <div class="brand"><span class="mark">စ</span> Admin</div>
+    <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard')">📊 Dashboard</div>
+    <div class="nav-item" data-page="books" onclick="goPage('books')">📚 Books</div>
+    <div class="nav-item" data-page="users" onclick="goPage('users')">👤 Users <span class="badge-count" id="pendingCount" style="display:none;"></span></div>
+    <div class="nav-item" data-page="notifications" onclick="goPage('notifications')">📣 Notifications</div>
+    <div class="nav-item" data-page="settings" onclick="goPage('settings')">⚙️ Settings</div>
+    <div class="sidebar-footer">
+      <button class="btn secondary" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-head"><div><h2>Dashboard</h2><p>အနှစ်ချုပ် အချက်အလက်များ</p></div></div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="num" id="statTotalBooks">–</div><div class="label">စာအုပ်စုစုပေါင်း</div></div>
+        <div class="stat-box"><div class="num" id="statFreeBooks">–</div><div class="label">Free စာအုပ်</div></div>
+        <div class="stat-box"><div class="num" id="statPremiumBooks">–</div><div class="label">Premium စာအုပ်</div></div>
+        <div class="stat-box"><div class="num" id="statPendingDevices">–</div><div class="label">Pending Users</div></div>
+      </div>
+      <div class="card-panel">
+        <h3 style="margin-bottom:14px;">Quick Guide</h3>
+        <p style="color:var(--muted); font-size:13.5px; line-height:1.9;">
+          1. <b style="color:var(--text)">Books</b> tab ကနေ စာအုပ်အသစ်ထည့်ပါ (Free / Premium ရွေးလို့ရပါတယ်)။<br>
+          2. User က Website ထဲမှာ Register/Login လုပ်ပြီး Telegram ကနေ Admin ကို User ID ပို့လာပါလိမ့်မယ်။<br>
+          3. <b style="color:var(--text)">Users</b> tab ထဲမှာ User ID ကို ရှာပြီး Approve နှိပ်ပေးပါ — ချက်ချင်း Unlock ဖြစ်ပါလိမ့်မယ်။ (ဒီအကောင့်နဲ့ Browser/Device မည်သည့်ခုကနေ Login ဝင်ဝင် Premium ရနေပါမယ်)
+        </p>
+      </div>
+    </div>
+
+    <!-- BOOKS -->
+    <div class="page" id="page-books">
+      <div class="page-head">
+        <div><h2>Books</h2><p>စာအုပ်များ ထည့်/ပြင်/ဖျက်ရန်</p></div>
+        <button class="btn" style="width:auto;" onclick="openBookForm()">+ စာအုပ်အသစ်ထည့်မယ်</button>
+      </div>
+      <div class="card-panel" style="padding:0;">
+        <table>
+          <thead><tr><th>Title</th><th>Type</th><th style="width:120px;">Actions</th></tr></thead>
+          <tbody id="booksTableBody"><tr><td colspan="3" class="empty-row">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="page-head">
+        <div><h2>Users</h2><p>Register လုပ်ထားသော User အကောင့်များ</p></div>
+        <button class="btn secondary" style="width:auto;" onclick="loadDevices()">Refresh</button>
+      </div>
+      <div class="card-panel" style="padding:0;">
+        <table>
+          <thead><tr><th>User ID</th><th>အမည် / ဖုန်း</th><th>Status</th><th style="width:150px;">Actions</th></tr></thead>
+          <tbody id="devicesTableBody"><tr><td colspan="4" class="empty-row">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="page-head">
+        <div><h2>Notifications</h2><p>User Site ကို Realtime Notification ပို့ရန်</p></div>
+      </div>
+
+      <div class="card-panel">
+        <div class="field">
+          <label>ပို့မည့်သူ</label>
+          <select id="notifTarget" onchange="onNotifTargetChange()">
+            <option value="">အားလုံးဆီ ပို့မယ် (Broadcast)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ခေါင်းစဉ်</label>
+          <input type="text" id="notifTitle" placeholder="ဥပမာ - Premium Unlock ဖြစ်ပါပြီ">
+        </div>
+        <div class="field">
+          <label>မက်ဆေ့ချ်</label>
+          <textarea id="notifMessage" rows="3" placeholder="Message အပြည့်အစုံ ရေးပါ..."></textarea>
+        </div>
+        <button class="btn" style="width:auto;" onclick="sendNotification()">📣 Notification ပို့မယ်</button>
+      </div>
+
+      <div class="card-panel" style="padding:0;">
+        <div style="padding:18px 22px 4px; display:flex; justify-content:space-between; align-items:center;">
+          <h3 style="font-size:15px;">ပို့ခဲ့ဖူးသော Notifications</h3>
+          <button class="icon-btn" onclick="loadNotifications()" title="Refresh">⟳</button>
+        </div>
+        <table>
+          <thead><tr><th>ခေါင်းစဉ် / မက်ဆေ့ချ်</th><th>ပို့ချိန်</th><th style="width:60px;">Actions</th></tr></thead>
+          <tbody id="notificationsTableBody"><tr><td colspan="3" class="empty-row">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-head"><div><h2>Settings</h2><p>Telegram link နှင့် Password ပြောင်းရန်</p></div></div>
+      <div class="card-panel">
+        <div class="field">
+          <label>Telegram Contact Link</label>
+          <input type="text" id="settingsTelegram" placeholder="https://t.me/your_username">
+        </div>
+        <button class="btn" style="width:auto;" onclick="saveTelegramLink()">Telegram Link သိမ်းမယ်</button>
+      </div>
+      <div class="card-panel">
+        <div class="field">
+          <label>Admin Password အသစ်</label>
+          <input type="password" id="settingsNewPassword" placeholder="Password အသစ် ထည့်ပါ">
+        </div>
+        <button class="btn danger" style="width:auto;" onclick="changePassword()">Password ပြောင်းမယ်</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOOK FORM MODAL -->
+<div class="modal-overlay" id="bookFormOverlay">
+  <div class="modal-box">
+    <h3 id="bookFormTitle">စာအုပ်အသစ်ထည့်မယ်</h3>
+    <input type="hidden" id="bookFormId">
+    <div class="field"><label>စာအုပ်နာမည်</label><input type="text" id="bookFormTitleInput" placeholder="ဥပမာ - မောင်ထင်"></div>
+    <div class="field"><label>စာရေးသူ</label><input type="text" id="bookFormAuthor" placeholder="စာရေးသူအမည်"></div>
+    <div class="field">
+      <label>Cover Image</label>
+      <input type="file" id="bookFormCoverFile" accept="image/*" onchange="handleCoverFileSelect(event)">
+      <div id="coverPreviewWrap" style="display:none; margin-top:10px;">
+        <img id="coverPreviewImg" style="max-width:120px; max-height:160px; border-radius:8px; border:1px solid var(--line);">
+        <button type="button" class="icon-btn" style="margin-left:8px;" onclick="clearCoverImage()" title="ဖျက်မယ်">🗑</button>
+      </div>
+      <div id="coverStatusText" style="font-size:11.5px; color:var(--muted); margin-top:6px;"></div>
+      <input type="hidden" id="bookFormCover">
+    </div>
+    <div class="field">
+      <label>အမျိုးအစား</label>
+      <select id="bookFormType">
+        <option value="free">Free</option>
+        <option value="premium">Premium</option>
+      </select>
+    </div>
+    <div class="field"><label>အကျဉ်းချုပ်</label><textarea id="bookFormDesc" rows="2" placeholder="စာအုပ်အကြောင်း အနှစ်ချုပ်"></textarea></div>
+    <div class="form-actions">
+      <button class="btn secondary" onclick="closeBookForm()">မလုပ်တော့ပါ</button>
+      <button class="btn" onclick="submitBookForm()">သိမ်းမယ်</button>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin-top:14px; line-height:1.7;">
+      💡 စာအုပ်စာသားများကို Save လုပ်ပြီးနောက် Books list ထဲက <b>📖 Chapters</b> ခလုတ်ကနေ
+      အခန်းလိုက် ထည့်ရပါမယ်။
+    </p>
+  </div>
+</div>
+
+<!-- CHAPTERS LIST MODAL -->
+<div class="modal-overlay" id="chaptersOverlay">
+  <div class="modal-box" style="max-width:640px;">
+    <h3 id="chaptersModalTitle">အခန်းများ</h3>
+    <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+      <button class="btn" style="width:auto;" onclick="openChapterForm()">+ အခန်းအသစ်ထည့်မယ်</button>
+    </div>
+    <table>
+      <thead><tr><th style="width:60px;">အမှတ်</th><th>ခေါင်းစဉ်</th><th style="width:90px;">Actions</th></tr></thead>
+      <tbody id="chaptersTableBody"><tr><td colspan="3" class="empty-row">Loading...</td></tr></tbody>
+    </table>
+    <div class="form-actions">
+      <button class="btn secondary" onclick="closeChaptersModal()">ပိတ်မယ်</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAPTER FORM MODAL -->
+<div class="modal-overlay" id="chapterFormOverlay">
+  <div class="modal-box">
+    <h3 id="chapterFormTitle">အခန်းအသစ်ထည့်မယ်</h3>
+    <input type="hidden" id="chapterFormId">
+    <input type="hidden" id="chapterFormBookId">
+    <div class="field"><label>အခန်းအမှတ် (ဥပမာ 1, 2, 3...)</label><input type="number" id="chapterFormNumber" placeholder="Auto"></div>
+    <div class="field"><label>အခန်းခေါင်းစဉ်</label><input type="text" id="chapterFormTitleInput" placeholder="ဥပမာ - ပထမအခန်း"></div>
+    <div class="field"><label>အခန်းစာသား</label><textarea id="chapterFormContent" rows="12" placeholder="ဒီအခန်းရဲ့ စာသားကို ဒီနေရာမှာ ကူးထည့်ပါ..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn secondary" onclick="closeChapterForm()">မလုပ်တော့ပါ</button>
+      <button class="btn" onclick="submitChapterForm()">သိမ်းမယ်</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =========================================================
+   CONFIG — index.html ထဲက Project URL / anon key အတူတူထည့်ပါ
+   ========================================================= */
+const SUPABASE_URL = "https://pumzzoxnftounxgckold.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_DYPOucXVditiiW7R0BCwkQ_QamjYrFW";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let ADMIN_PASSWORD = sessionStorage.getItem("admin_password") || "";
+let ALL_BOOKS = [];
+let ALL_DEVICES = [];
+
+function showToast(msg, isErr) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------------- DATA LAYER (Supabase) ---------------- */
+async function dbGetSettingValue(key) {
+  const { data, error } = await sb.from("settings").select("value").eq("key", key).maybeSingle();
+  if (error || !data) return null;
+  return data.value;
+}
+
+async function checkAdminPassword(pw) {
+  const stored = await dbGetSettingValue("admin_password");
+  return stored !== null && String(pw) === String(stored);
+}
+
+/* ---------------- AUTH ---------------- */
+async function doLogin() {
+  const pw = document.getElementById("loginPassword").value;
+  document.getElementById("loginError").textContent = "";
+  if (!pw) { document.getElementById("loginError").textContent = "Password ထည့်ပါ"; return; }
+
+  const ok = await checkAdminPassword(pw);
+  if (!ok) {
+    document.getElementById("loginError").textContent = "Password မှားနေပါတယ်";
+    return;
+  }
+  ADMIN_PASSWORD = pw;
+  sessionStorage.setItem("admin_password", pw);
+  enterApp();
+}
+
+function doLogout() {
+  sessionStorage.removeItem("admin_password");
+  ADMIN_PASSWORD = "";
+  document.getElementById("app").style.display = "none";
+  document.getElementById("loginScreen").style.display = "flex";
+}
+
+function enterApp() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  loadAll();
+}
+
+/* ---------------- NAV ---------------- */
+function goPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  document.querySelector(`.nav-item[data-page="${name}"]`).classList.add("active");
+}
+
+function loadAll() {
+  loadBooks();
+  loadDevices();
+  loadSettingsForm();
+  loadNotifications();
+}
+
+/* ---------------- BOOKS ---------------- */
+async function loadBooks() {
+  const { data, error } = await sb.from("books").select("*").order("created_at", { ascending: false });
+  if (error) { showToast("Books load မအောင်မြင်ပါ", true); return; }
+  ALL_BOOKS = data.map(b => ({
+    BookID: b.id, Title: b.title, Author: b.author, CoverURL: b.cover_url,
+    Type: b.type, Description: b.description,
+  }));
+  renderBooksTable();
+  updateStats();
+}
+
+function renderBooksTable() {
+  const tbody = document.getElementById("booksTableBody");
+  if (ALL_BOOKS.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="empty-row">စာအုပ် မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_BOOKS.map(b => {
+    const isPremium = (b.Type || "free").toLowerCase() === "premium";
+    return `
+      <tr>
+        <td>
+          <div class="row-title">${escapeHtml(b.Title || "အမည်မဲ့")}</div>
+          <div class="row-sub">${escapeHtml(b.Author || "")}</div>
+        </td>
+        <td><span class="tag ${isPremium ? 'premium' : 'free'}">${isPremium ? 'Premium' : 'Free'}</span></td>
+        <td>
+          <div class="row-actions">
+            <button class="icon-btn" onclick="openChaptersModal('${b.BookID}', '${escapeHtml(b.Title || "").replace(/'/g,"\\'")}')" title="Chapters">📖</button>
+            <button class="icon-btn" onclick="editBook('${b.BookID}')" title="Edit">✎</button>
+            <button class="icon-btn" onclick="deleteBook('${b.BookID}')" title="Delete">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+function openBookForm() {
+  document.getElementById("bookFormTitle").textContent = "စာအုပ်အသစ်ထည့်မယ်";
+  document.getElementById("bookFormId").value = "";
+  document.getElementById("bookFormTitleInput").value = "";
+  document.getElementById("bookFormAuthor").value = "";
+  document.getElementById("bookFormCover").value = "";
+  document.getElementById("bookFormCoverFile").value = "";
+  document.getElementById("coverPreviewWrap").style.display = "none";
+  document.getElementById("coverStatusText").textContent = "";
+  document.getElementById("bookFormType").value = "free";
+  document.getElementById("bookFormDesc").value = "";
+  document.getElementById("bookFormOverlay").classList.add("open");
+}
+
+async function editBook(id) {
+  const { data, error } = await sb.from("books").select("*").eq("id", id).single();
+  if (error) { showToast("စာအုပ် ရှာမတွေ့ပါ", true); return; }
+  document.getElementById("bookFormTitle").textContent = "စာအုပ် ပြင်ဆင်မယ်";
+  document.getElementById("bookFormId").value = data.id;
+  document.getElementById("bookFormTitleInput").value = data.title || "";
+  document.getElementById("bookFormAuthor").value = data.author || "";
+  document.getElementById("bookFormCover").value = data.cover_url || "";
+  document.getElementById("bookFormCoverFile").value = "";
+  document.getElementById("coverStatusText").textContent = "";
+  if (data.cover_url) {
+    document.getElementById("coverPreviewImg").src = data.cover_url;
+    document.getElementById("coverPreviewWrap").style.display = "block";
+  } else {
+    document.getElementById("coverPreviewWrap").style.display = "none";
+  }
+  document.getElementById("bookFormType").value = (data.type || "free").toLowerCase();
+  document.getElementById("bookFormDesc").value = data.description || "";
+  document.getElementById("bookFormOverlay").classList.add("open");
+}
+
+function closeBookForm() { document.getElementById("bookFormOverlay").classList.remove("open"); }
+
+/* ---------------- COVER IMAGE (compress + Base64) ---------------- */
+function compressImage(file, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("ပုံ ဖတ်၍မရပါ"));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("File ဖတ်၍မရပါ"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handleCoverFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById("coverStatusText");
+  statusEl.textContent = "ပုံ ညှစ်နေသည်...";
+
+  try {
+    // 300px width, 70% JPEG quality — Database/Bandwidth ချွေတာဖို့
+    const base64 = await compressImage(file, 300, 0.7);
+    document.getElementById("bookFormCover").value = base64;
+    document.getElementById("coverPreviewImg").src = base64;
+    document.getElementById("coverPreviewWrap").style.display = "block";
+
+    const sizeKB = Math.round((base64.length * 3) / 4 / 1024);
+    statusEl.textContent = `ပြီးပါပြီ (~${sizeKB}KB)`;
+  } catch (e) {
+    statusEl.textContent = "မအောင်မြင်ပါ — ပုံ ပြန်ရွေးပါ";
+    showToast(e.message, true);
+  }
+}
+
+function clearCoverImage() {
+  document.getElementById("bookFormCover").value = "";
+  document.getElementById("bookFormCoverFile").value = "";
+  document.getElementById("coverPreviewWrap").style.display = "none";
+  document.getElementById("coverStatusText").textContent = "";
+}
+
+async function submitBookForm() {
+  const id = document.getElementById("bookFormId").value;
+  const title = document.getElementById("bookFormTitleInput").value.trim();
+  const author = document.getElementById("bookFormAuthor").value.trim();
+  const coverUrl = document.getElementById("bookFormCover").value.trim();
+  const type = document.getElementById("bookFormType").value;
+  const description = document.getElementById("bookFormDesc").value.trim();
+  if (!title) { showToast("စာအုပ်နာမည် ထည့်ပါ", true); return; }
+
+  if (id) {
+    const { error } = await sb.from("books").update({
+      title, author, cover_url: coverUrl, type, description,
+    }).eq("id", id);
+    if (error) { showToast(error.message, true); return; }
+    showToast("ပြင်ဆင်ပြီးပါပြီ");
+    closeBookForm();
+    loadBooks();
+  } else {
+    const { data, error } = await sb.from("books").insert({
+      title, author, cover_url: coverUrl, type, description,
+    }).select().single();
+    if (error) { showToast(error.message, true); return; }
+    showToast("စာအုပ်အသစ် ထည့်ပြီးပါပြီ");
+    closeBookForm();
+    loadBooks();
+    openChaptersModal(data.id, title); // အသစ်ထည့်ပြီးရင် Chapters ချက်ချင်းဖွင့်ပေး
+  }
+}
+
+async function deleteBook(id) {
+  if (!confirm("ဒီစာအုပ်ကို ဖျက်မှာ သေချာပါသလား? (အခန်းများပါ အကုန်ဖျက်ပါမယ်)")) return;
+  const { error } = await sb.from("books").delete().eq("id", id); // chapters cascade-delete via FK
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadBooks(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- CHAPTERS ---------------- */
+let CURRENT_CHAPTERS_BOOK_ID = null;
+let ALL_CHAPTERS = [];
+
+async function openChaptersModal(bookId, bookTitle) {
+  CURRENT_CHAPTERS_BOOK_ID = bookId;
+  document.getElementById("chaptersModalTitle").textContent = "အခန်းများ — " + bookTitle;
+  document.getElementById("chaptersOverlay").classList.add("open");
+  await loadChapters();
+}
+function closeChaptersModal() { document.getElementById("chaptersOverlay").classList.remove("open"); }
+
+async function loadChapters() {
+  const tbody = document.getElementById("chaptersTableBody");
+  tbody.innerHTML = `<tr><td colspan="3" class="empty-row">Loading...</td></tr>`;
+  const { data, error } = await sb.from("chapters").select("*").eq("book_id", CURRENT_CHAPTERS_BOOK_ID).order("chapter_number", { ascending: true });
+  if (error) { showToast("Chapters load မအောင်မြင်ပါ", true); return; }
+  ALL_CHAPTERS = data.map(c => ({
+    ChapterID: c.id, BookID: c.book_id, ChapterNumber: c.chapter_number, ChapterTitle: c.chapter_title, Content: c.content,
+  }));
+  renderChaptersTable();
+}
+
+function renderChaptersTable() {
+  const tbody = document.getElementById("chaptersTableBody");
+  if (ALL_CHAPTERS.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="empty-row">အခန်း မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_CHAPTERS.map(c => `
+    <tr>
+      <td>${escapeHtml(c.ChapterNumber)}</td>
+      <td class="row-title">${escapeHtml(c.ChapterTitle || "အမည်မဲ့")}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="editChapter('${c.ChapterID}')" title="Edit">✎</button>
+          <button class="icon-btn" onclick="deleteChapter('${c.ChapterID}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+function openChapterForm() {
+  document.getElementById("chapterFormTitle").textContent = "အခန်းအသစ်ထည့်မယ်";
+  document.getElementById("chapterFormId").value = "";
+  document.getElementById("chapterFormBookId").value = CURRENT_CHAPTERS_BOOK_ID;
+  document.getElementById("chapterFormNumber").value = "";
+  document.getElementById("chapterFormTitleInput").value = "";
+  document.getElementById("chapterFormContent").value = "";
+  document.getElementById("chapterFormOverlay").classList.add("open");
+}
+
+async function editChapter(chapterId) {
+  const c = ALL_CHAPTERS.find(x => x.ChapterID === chapterId);
+  if (!c) { showToast("အခန်း ရှာမတွေ့ပါ", true); return; }
+  document.getElementById("chapterFormTitle").textContent = "အခန်း ပြင်ဆင်မယ်";
+  document.getElementById("chapterFormId").value = c.ChapterID;
+  document.getElementById("chapterFormBookId").value = c.BookID;
+  document.getElementById("chapterFormNumber").value = c.ChapterNumber;
+  document.getElementById("chapterFormTitleInput").value = c.ChapterTitle || "";
+  document.getElementById("chapterFormContent").value = c.Content || "";
+  document.getElementById("chapterFormOverlay").classList.add("open");
+}
+
+function closeChapterForm() { document.getElementById("chapterFormOverlay").classList.remove("open"); }
+
+async function submitChapterForm() {
+  const id = document.getElementById("chapterFormId").value;
+  const bookId = document.getElementById("chapterFormBookId").value;
+  const title = document.getElementById("chapterFormTitleInput").value.trim();
+  const content = document.getElementById("chapterFormContent").value;
+  let chapterNumber = document.getElementById("chapterFormNumber").value;
+  if (!title) { showToast("အခန်းခေါင်းစဉ် ထည့်ပါ", true); return; }
+
+  if (!chapterNumber) {
+    const maxNum = ALL_CHAPTERS.reduce((max, c) => Math.max(max, Number(c.ChapterNumber) || 0), 0);
+    chapterNumber = maxNum + 1;
+  }
+
+  if (id) {
+    const { error } = await sb.from("chapters").update({
+      chapter_number: chapterNumber, chapter_title: title, content,
+    }).eq("id", id);
+    if (error) { showToast(error.message, true); return; }
+    showToast("အခန်း ပြင်ဆင်ပြီးပါပြီ");
+  } else {
+    const { error } = await sb.from("chapters").insert({
+      book_id: bookId, chapter_number: chapterNumber, chapter_title: title, content,
+    });
+    if (error) { showToast(error.message, true); return; }
+    showToast("အခန်းအသစ် ထည့်ပြီးပါပြီ");
+  }
+  closeChapterForm();
+  loadChapters();
+}
+
+async function deleteChapter(chapterId) {
+  if (!confirm("ဒီအခန်းကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb.from("chapters").delete().eq("id", chapterId);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadChapters(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- USERS ---------------- */
+async function loadDevices() {
+  const { data, error } = await sb.from("users").select("*").order("created_at", { ascending: false });
+  if (error) { showToast("Users load မအောင်မြင်ပါ", true); return; }
+  ALL_DEVICES = data.map(u => ({
+    UserID: u.id, Name: u.name, Phone: u.phone, Status: u.status, CreatedAt: u.created_at, ApprovedAt: u.approved_at,
+  }));
+  renderDevicesTable();
+  updateStats();
+}
+
+function renderDevicesTable() {
+  const tbody = document.getElementById("devicesTableBody");
+  if (ALL_DEVICES.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-row">User Register မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_DEVICES.map(u => {
+    const status = (u.Status || "pending").toLowerCase();
+    return `
+      <tr>
+        <td><code class="mono">${escapeHtml(u.UserID)}</code></td>
+        <td>
+          <div class="row-title">${escapeHtml(u.Name || "")}</div>
+          <div class="row-sub">${escapeHtml(u.Phone || "")}</div>
+        </td>
+        <td><span class="tag ${status}">${status}</span></td>
+        <td>
+          <div class="row-actions">
+            ${status !== 'approved' ? `<button class="icon-btn" onclick="approveDevice('${u.UserID}')" title="Approve">✓</button>` : ''}
+            ${status !== 'rejected' ? `<button class="icon-btn" onclick="rejectDevice('${u.UserID}')" title="Reject">✕</button>` : ''}
+            <button class="icon-btn" onclick="deleteDevice('${u.UserID}')" title="Delete">🗑</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  const pending = ALL_DEVICES.filter(u => (u.Status || "").toLowerCase() === "pending").length;
+  const badge = document.getElementById("pendingCount");
+  if (pending > 0) { badge.style.display = "inline-block"; badge.textContent = pending; }
+  else badge.style.display = "none";
+
+  populateNotifTargetDropdown();
+}
+
+async function approveDevice(userId) {
+  const { error } = await sb.from("users").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", userId);
+  if (!error) { showToast("User Unlock ပြီးပါပြီ ✓"); loadDevices(); }
+  else showToast(error.message, true);
+}
+async function rejectDevice(userId) {
+  const { error } = await sb.from("users").update({ status: "rejected" }).eq("id", userId);
+  if (!error) { showToast("ငြင်းပယ်လိုက်ပါပြီ"); loadDevices(); }
+  else showToast(error.message, true);
+}
+async function deleteDevice(userId) {
+  if (!confirm("ဒီ User Account ကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb.from("users").delete().eq("id", userId);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadDevices(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- SETTINGS ---------------- */
+async function loadSettingsForm() {
+  const link = await dbGetSettingValue("telegram_link");
+  document.getElementById("settingsTelegram").value = link || "";
+}
+async function saveTelegramLink() {
+  const link = document.getElementById("settingsTelegram").value.trim();
+  const { error } = await sb.from("settings").update({ value: link }).eq("key", "telegram_link");
+  if (!error) showToast("Telegram Link သိမ်းပြီးပါပြီ");
+  else showToast(error.message, true);
+}
+async function changePassword() {
+  const newPw = document.getElementById("settingsNewPassword").value;
+  if (!newPw) { showToast("Password အသစ်ထည့်ပါ", true); return; }
+  const { error } = await sb.from("settings").update({ value: newPw }).eq("key", "admin_password");
+  if (!error) {
+    showToast("Password ပြောင်းပြီးပါပြီ");
+    ADMIN_PASSWORD = newPw;
+    sessionStorage.setItem("admin_password", newPw);
+    document.getElementById("settingsNewPassword").value = "";
+  } else showToast(error.message, true);
+}
+
+/* ---------------- NOTIFICATIONS ---------------- */
+function populateNotifTargetDropdown() {
+  const sel = document.getElementById("notifTarget");
+  if (!sel) return;
+  const currentVal = sel.value;
+  sel.innerHTML = `<option value="">အားလုံးဆီ ပို့မယ် (Broadcast)</option>` +
+    ALL_DEVICES.map(u => `<option value="${escapeHtml(u.UserID)}">${escapeHtml(u.Name || "")} — ${escapeHtml(u.UserID)}</option>`).join("");
+  sel.value = currentVal;
+}
+function onNotifTargetChange() { /* no-op placeholder for future UI feedback */ }
+
+async function sendNotification() {
+  const target = document.getElementById("notifTarget").value || null;
+  const title = document.getElementById("notifTitle").value.trim();
+  const message = document.getElementById("notifMessage").value.trim();
+  if (!title || !message) { showToast("ခေါင်းစဉ်နှင့် Message ထည့်ပါ", true); return; }
+
+  const { error } = await sb.from("notifications").insert({
+    title, message, target_user_id: target,
+  });
+  if (error) { showToast(error.message, true); return; }
+
+  showToast("Notification ပို့ပြီးပါပြီ ✓");
+  document.getElementById("notifTitle").value = "";
+  document.getElementById("notifMessage").value = "";
+  loadNotifications();
+}
+
+async function loadNotifications() {
+  const tbody = document.getElementById("notificationsTableBody");
+  const { data, error } = await sb.from("notifications").select("*").order("created_at", { ascending: false }).limit(50);
+  if (error) { tbody.innerHTML = `<tr><td colspan="3" class="empty-row">Load မအောင်မြင်ပါ</td></tr>`; return; }
+
+  if (data.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="empty-row">Notification မပို့ရသေးပါ</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.map(n => {
+    const target = n.target_user_id
+      ? `<span class="tag pending">👤 ${escapeHtml(n.target_user_id)}</span>`
+      : `<span class="tag approved">📢 Broadcast</span>`;
+    const dateStr = n.created_at ? new Date(n.created_at).toLocaleString() : "-";
+    return `
+      <tr>
+        <td>
+          <div class="row-title">${escapeHtml(n.title)}</div>
+          <div class="row-sub">${escapeHtml(n.message)}</div>
+          <div style="margin-top:6px;">${target}</div>
+        </td>
+        <td style="font-size:12px; color:var(--muted);">${dateStr}</td>
+        <td><button class="icon-btn" onclick="deleteNotification('${n.id}')" title="Delete">🗑</button></td>
+      </tr>`;
+  }).join("");
+}
+
+async function deleteNotification(id) {
+  if (!confirm("ဒီ Notification ကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb.from("notifications").delete().eq("id", id);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadNotifications(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- STATS ---------------- */
+function updateStats() {
+  document.getElementById("statTotalBooks").textContent = ALL_BOOKS.length;
+  document.getElementById("statFreeBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"free").toLowerCase()==="free").length;
+  document.getElementById("statPremiumBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"").toLowerCase()==="premium").length;
+  document.getElementById("statPendingDevices").textContent = ALL_DEVICES.filter(d => (d.Status||"").toLowerCase()==="pending").length;
+}
+
+/* ---------------- INIT ---------------- */
+if (ADMIN_PASSWORD) {
+  // try auto-login with saved password
+  checkAdminPassword(ADMIN_PASSWORD).then(ok => { if (ok) enterApp(); });
+}
+</script>
+</body>
+</html>

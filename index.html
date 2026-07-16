@@ -105,6 +105,7 @@
   .icon-btn:hover{ border-color:var(--gold); }
   .empty-row{ text-align:center; color:var(--muted); padding:40px 12px; font-size:13.5px; }
   code.mono{ font-family:monospace; font-size:12px; word-break:break-all; }
+  .order-thumb{ width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); cursor:pointer; }
 
   .modal-overlay{
     position:fixed; inset:0; background:rgba(10,14,12,0.75); display:none; align-items:center; justify-content:center;
@@ -157,9 +158,11 @@
     <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard')">📊 Dashboard</div>
     <div class="nav-item" data-page="books" onclick="goPage('books')">📚 Books</div>
     <div class="nav-item" data-page="users" onclick="goPage('users')">👤 Users <span class="badge-count" id="pendingCount" style="display:none;"></span></div>
+    <div class="nav-item" data-page="premiumorders" onclick="goPage('premiumorders')">💳 Premium Orders <span class="badge-count" id="pendingOrdersCount" style="display:none;"></span></div>
     <div class="nav-item" data-page="notifications" onclick="goPage('notifications')">📣 Notifications</div>
     <div class="nav-item" data-page="giftcards" onclick="goPage('giftcards')">🎁 2D ဂဏန်းလက်ဆောင်</div>
     <div class="nav-item" data-page="vipusers" onclick="goPage('vipusers')">👑 2D VIP Users <span class="badge-count" id="vipPendingCount" style="display:none;"></span></div>
+    <div class="nav-item" data-page="viporders" onclick="goPage('viporders')">💳 VIP Orders (2D) <span class="badge-count" id="pendingVipOrdersCount" style="display:none;"></span></div>
     <div class="nav-item" data-page="settings" onclick="goPage('settings')">⚙️ Settings</div>
     <div class="sidebar-footer">
       <button class="btn secondary" onclick="doLogout()">Logout</button>
@@ -176,20 +179,30 @@
         <div class="stat-box"><div class="num" id="statFreeBooks">–</div><div class="label">Free စာအုပ်</div></div>
         <div class="stat-box"><div class="num" id="statPremiumBooks">–</div><div class="label">Premium စာအုပ်</div></div>
         <div class="stat-box"><div class="num" id="statPendingDevices">–</div><div class="label">Pending Users (Book)</div></div>
+        <div class="stat-box"><div class="num" id="statPendingOrders">–</div><div class="label">Pending Premium Orders</div></div>
         <div class="stat-box"><div class="num" id="statTotalGiftCards">–</div><div class="label">2D ဂဏန်းလက်ဆောင် Post စုစုပေါင်း</div></div>
         <div class="stat-box"><div class="num" id="statVipGiftCards">–</div><div class="label">VIP Post</div></div>
         <div class="stat-box"><div class="num" id="statPendingVip">–</div><div class="label">Pending VIP Users</div></div>
+        <div class="stat-box"><div class="num" id="statPendingVipOrders">–</div><div class="label">Pending VIP Orders (2D)</div></div>
       </div>
       <div class="card-panel">
         <h3 style="margin-bottom:14px;">Quick Guide</h3>
         <p style="color:var(--muted); font-size:13.5px; line-height:1.9;">
           1. <b style="color:var(--text)">Books</b> tab ကနေ စာအုပ်အသစ်ထည့်ပါ (Free / Premium ရွေးလို့ရပါတယ်)။<br>
-          2. User က Website ထဲမှာ Register/Login လုပ်ပြီး Telegram ကနေ Admin ကို User ID ပို့လာပါလိမ့်မယ်။<br>
-          3. <b style="color:var(--text)">Users</b> tab ထဲမှာ User ID ကို ရှာပြီး Approve နှိပ်ပေးပါ — ချက်ချင်း Unlock ဖြစ်ပါလိမ့်မယ်။ (ဒီအကောင့်နဲ့ Browser/Device မည်သည့်ခုကနေ Login ဝင်ဝင် Premium ရနေပါမယ်)<br><br>
+          2. User က Website ထဲမှာ Register/Login လုပ်ပြီး "Premium ဝင်မယ်" ကိုနှိပ်ပြီး Payment
+          Screenshot နဲ့ Order တင်လိုက်ရင် Telegram ဆီ ချက်ချင်း အကြောင်းကြားချက် ရောက်ပါလိမ့်မယ်။<br>
+          3. <b style="color:var(--text)">Premium Orders</b> tab ထဲမှာ Order ကို ကြည့်ပြီး Approve
+          နှိပ်ပေးပါ — ချက်ချင်း Unlock ဖြစ်ပါလိမ့်မယ်။ (ဒီအကောင့်နဲ့ Browser/Device မည်သည့်ခုကနေ
+          Login ဝင်ဝင် Premium ရနေပါမယ်)<br><br>
           <b style="color:var(--gold-soft)">2D ဂဏန်းလက်ဆောင် (Free/VIP)</b><br>
           4. <b style="color:var(--text)">2D ဂဏန်းလက်ဆောင်</b> tab ကနေ Post အသစ်ထည့်ပြီး Free / VIP ရွေးပါ။<br>
-          5. User က 2D Live → <b style="color:var(--text)">VIP</b> tab ထဲမှာ Register/Login လုပ်ပြီး ရလာတဲ့ VIP Key ကို Telegram ကနေ Admin ဆီ ပို့ပါလိမ့်မယ်။<br>
-          6. <b style="color:var(--text)">2D VIP Users</b> tab ထဲမှာ Key ကို ရှာပြီး Approve နှိပ်ပေးပါ — VIP Post များ ချက်ချင်း Unlock ဖြစ်ပါလိမ့်မယ်။
+          5. User က 2D Live → <b style="color:var(--text)">VIP</b> tab ထဲမှာ Register/Login လုပ်ပြီး
+          "VIP ဝင်မယ်" ကိုနှိပ်ပြီး Payment Screenshot နဲ့ Order တင်ပါလိမ့်မယ်။<br>
+          6. <b style="color:var(--text)">VIP Orders (2D)</b> tab ထဲမှာ Order ကို ကြည့်ပြီး Approve
+          နှိပ်ပေးပါ — VIP Post များ ချက်ချင်း Unlock ဖြစ်ပါလိမ့်မယ်။<br><br>
+          <b style="color:var(--gold-soft)">ဈေးနှုန်း / Payment Number</b><br>
+          7. <b style="color:var(--text)">Settings</b> tab ထဲမှာ Premium/VIP ဈေးနှုန်းနှင့် KBZ Pay /
+          Wave Pay name+number ကို ပြောင်းလို့ရပါတယ် — User Form ထဲမှာ ချက်ချင်း update ဖြစ်ပါလိမ့်မယ်။
         </p>
       </div>
     </div>
@@ -218,6 +231,20 @@
         <table>
           <thead><tr><th>User ID</th><th>အမည် / ဖုန်း</th><th>Status</th><th style="width:150px;">Actions</th></tr></thead>
           <tbody id="devicesTableBody"><tr><td colspan="4" class="empty-row">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PREMIUM ORDERS (Book Site) -->
+    <div class="page" id="page-premiumorders">
+      <div class="page-head">
+        <div><h2>Premium Orders</h2><p>Book Site — User များ Payment Screenshot နှင့်တင်ထားသော Order များ</p></div>
+        <button class="btn secondary" style="width:auto;" onclick="loadPremiumOrders()">Refresh</button>
+      </div>
+      <div class="card-panel" style="padding:0;">
+        <table>
+          <thead><tr><th>User</th><th>Amount / Method</th><th>Screenshot</th><th>Status</th><th style="width:170px;">Actions</th></tr></thead>
+          <tbody id="premiumOrdersTableBody"><tr><td colspan="5" class="empty-row">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -286,6 +313,20 @@
       </div>
     </div>
 
+    <!-- VIP ORDERS (2D Site) -->
+    <div class="page" id="page-viporders">
+      <div class="page-head">
+        <div><h2>VIP Orders (2D)</h2><p>2D Site — User များ Payment Screenshot နှင့်တင်ထားသော Order များ</p></div>
+        <button class="btn secondary" style="width:auto;" onclick="loadVipOrders()">Refresh</button>
+      </div>
+      <div class="card-panel" style="padding:0;">
+        <table>
+          <thead><tr><th>User</th><th>Amount / Method</th><th>Screenshot</th><th>Status</th><th style="width:170px;">Actions</th></tr></thead>
+          <tbody id="vipOrdersTableBody"><tr><td colspan="5" class="empty-row">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="page-head"><div><h2>Settings</h2><p>Telegram link၊ စာတန်းပြေးနှင့် Password ပြောင်းရန်</p></div></div>
@@ -309,6 +350,26 @@
           <input type="password" id="settingsNewPassword" placeholder="Password အသစ် ထည့်ပါ">
         </div>
         <button class="btn danger" style="width:auto;" onclick="changePassword()">Password ပြောင်းမယ်</button>
+      </div>
+
+      <h3 style="margin:30px 0 14px;">📚 Book Site — Premium ဈေးနှုန်း &amp; Payment</h3>
+      <div class="card-panel">
+        <div class="field"><label>Premium ဈေးနှုန်း (Ks)</label><input type="number" id="settingsPremiumPrice" placeholder="ဥပမာ - 5000"></div>
+        <div class="field"><label>KBZ Pay အမည်</label><input type="text" id="settingsKbzName" placeholder="KBZ Pay Account Name"></div>
+        <div class="field"><label>KBZ Pay နံပါတ်</label><input type="text" id="settingsKbzNumber" placeholder="09xxxxxxxxx"></div>
+        <div class="field"><label>Wave Pay အမည်</label><input type="text" id="settingsWaveName" placeholder="Wave Pay Account Name"></div>
+        <div class="field"><label>Wave Pay နံပါတ်</label><input type="text" id="settingsWaveNumber" placeholder="09xxxxxxxxx"></div>
+        <button class="btn" style="width:auto;" onclick="savePremiumSettings()">Premium Settings သိမ်းမယ်</button>
+      </div>
+
+      <h3 style="margin:30px 0 14px;">🎰 2D Site — VIP ဈေးနှုန်း &amp; Payment</h3>
+      <div class="card-panel">
+        <div class="field"><label>VIP ဈေးနှုန်း (Ks)</label><input type="number" id="settingsVipPrice" placeholder="ဥပမာ - 5000"></div>
+        <div class="field"><label>KBZ Pay အမည်</label><input type="text" id="settingsVipKbzName" placeholder="KBZ Pay Account Name"></div>
+        <div class="field"><label>KBZ Pay နံပါတ်</label><input type="text" id="settingsVipKbzNumber" placeholder="09xxxxxxxxx"></div>
+        <div class="field"><label>Wave Pay အမည်</label><input type="text" id="settingsVipWaveName" placeholder="Wave Pay Account Name"></div>
+        <div class="field"><label>Wave Pay နံပါတ်</label><input type="text" id="settingsVipWaveNumber" placeholder="09xxxxxxxxx"></div>
+        <button class="btn" style="width:auto;" onclick="saveVipSettings()">VIP Settings သိမ်းမယ်</button>
       </div>
     </div>
 
@@ -436,6 +497,8 @@ const sb2d = window.supabase.createClient(TWOD_SUPABASE_URL, TWOD_SUPABASE_ANON_
 let ADMIN_PASSWORD = sessionStorage.getItem("admin_password") || "";
 let ALL_BOOKS = [];
 let ALL_DEVICES = [];
+let ALL_PREMIUM_ORDERS = [];
+let ALL_VIP_ORDERS = [];
 
 function showToast(msg, isErr) {
   const t = document.getElementById("toast");
@@ -504,6 +567,8 @@ function loadAll() {
   loadNotifications();
   loadGiftCards();
   loadVipUsers();
+  loadPremiumOrders();
+  loadVipOrders();
 }
 
 /* ---------------- BOOKS ---------------- */
@@ -611,7 +676,7 @@ function compressImage(file, maxWidth, quality) {
 }
 
 async function uploadToImgBB(base64DataUrl) {
-  const base64Only = base64DataUrl.split(",")[1]; // strip "data:image/jpeg;base64," prefix
+  const base64Only = base64DataUrl.split(",")[1];
   const formData = new FormData();
   formData.append("key", IMGBB_API_KEY);
   formData.append("image", base64Only);
@@ -622,7 +687,7 @@ async function uploadToImgBB(base64DataUrl) {
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.error?.message || "ImgBB upload မအောင်မြင်ပါ");
-  return data.data.url; // direct image link
+  return data.data.url;
 }
 
 async function handleCoverFileSelect(event) {
@@ -633,14 +698,13 @@ async function handleCoverFileSelect(event) {
   statusEl.innerHTML = `<span class="spin-small" style="border-color:rgba(201,162,39,0.25); border-top-color:var(--gold);"></span> ပုံ ညှစ်ပြီး Upload တင်နေသည်...`;
 
   try {
-    // 300px width, 70% JPEG quality — Compress ပြီးမှ Upload (Bandwidth ချွေတာဖို့)
     const base64 = await compressImage(file, 300, 0.7);
-    document.getElementById("coverPreviewImg").src = base64; // instant local preview while uploading
+    document.getElementById("coverPreviewImg").src = base64;
     document.getElementById("coverPreviewWrap").style.display = "block";
 
     const directUrl = await uploadToImgBB(base64);
     document.getElementById("bookFormCover").value = directUrl;
-    document.getElementById("coverPreviewImg").src = directUrl; // swap to real hosted URL
+    document.getElementById("coverPreviewImg").src = directUrl;
     statusEl.textContent = "Upload ပြီးပါပြီ ✓ (Direct Link auto ရရှိပါပြီ)";
   } catch (e) {
     statusEl.textContent = "မအောင်မြင်ပါ — ပုံ ပြန်ရွေးပါ";
@@ -680,13 +744,13 @@ async function submitBookForm() {
     showToast("စာအုပ်အသစ် ထည့်ပြီးပါပြီ");
     closeBookForm();
     loadBooks();
-    openChaptersModal(data.id, title); // အသစ်ထည့်ပြီးရင် Chapters ချက်ချင်းဖွင့်ပေး
+    openChaptersModal(data.id, title);
   }
 }
 
 async function deleteBook(id) {
   if (!confirm("ဒီစာအုပ်ကို ဖျက်မှာ သေချာပါသလား? (အခန်းများပါ အကုန်ဖျက်ပါမယ်)")) return;
-  const { error } = await sb.from("books").delete().eq("id", id); // chapters cascade-delete via FK
+  const { error } = await sb.from("books").delete().eq("id", id);
   if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadBooks(); }
   else showToast(error.message, true);
 }
@@ -921,6 +985,160 @@ async function deleteVipUser(userId) {
   else showToast(error.message, true);
 }
 
+/* ---------------- PREMIUM ORDERS (Book Site) ---------------- */
+async function loadPremiumOrders() {
+  const tbody = document.getElementById("premiumOrdersTableBody");
+  const { data, error } = await sb.from("premium_orders").select("*").order("created_at", { ascending: false }).limit(100);
+  if (error) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Load မအောင်မြင်ပါ</td></tr>`; return; }
+  ALL_PREMIUM_ORDERS = data;
+  renderPremiumOrdersTable();
+  updateStats();
+}
+
+function renderPremiumOrdersTable() {
+  const tbody = document.getElementById("premiumOrdersTableBody");
+  if (!tbody) return;
+  if (ALL_PREMIUM_ORDERS.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Order မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_PREMIUM_ORDERS.map(orderRowHtml).join("");
+
+  const pending = ALL_PREMIUM_ORDERS.filter(o => (o.status || "pending") === "pending").length;
+  const badge = document.getElementById("pendingOrdersCount");
+  if (badge) { if (pending > 0) { badge.style.display = "inline-block"; badge.textContent = pending; } else badge.style.display = "none"; }
+}
+
+function orderRowHtml(o) {
+  const methodLabel = o.payment_method === "kbz" ? "KBZ Pay" : o.payment_method === "wave" ? "Wave Pay" : (o.payment_method || "-");
+  const status = (o.status || "pending").toLowerCase();
+  const dateStr = o.created_at ? new Date(o.created_at).toLocaleString() : "-";
+  const img = o.screenshot_url
+    ? `<img class="order-thumb" src="${escapeHtml(o.screenshot_url)}" onclick="window.open('${escapeHtml(o.screenshot_url)}','_blank')">`
+    : `<span style="color:var(--muted); font-size:12px;">—</span>`;
+  return `
+    <tr>
+      <td>
+        <div class="row-title">${escapeHtml(o.user_name || "-")}</div>
+        <div class="row-sub"><code class="mono">${escapeHtml(o.user_id || "-")}</code></div>
+        <div class="row-sub">${escapeHtml(o.user_phone || "")}</div>
+      </td>
+      <td>
+        <div class="row-title">${escapeHtml(String(o.amount || "-"))} Ks</div>
+        <div class="row-sub">${escapeHtml(methodLabel)}</div>
+        <div class="row-sub">${dateStr}</div>
+      </td>
+      <td>${img}</td>
+      <td><span class="tag ${status}">${status}</span></td>
+      <td>
+        <div class="row-actions">
+          ${status !== 'approved' ? `<button class="icon-btn" onclick="approvePremiumOrder('${o.id}', '${escapeHtml(o.user_id || "")}')" title="Approve">✓</button>` : ''}
+          ${status !== 'rejected' ? `<button class="icon-btn" onclick="rejectPremiumOrder('${o.id}')" title="Reject">✕</button>` : ''}
+          <button class="icon-btn" onclick="deletePremiumOrder('${o.id}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+async function approvePremiumOrder(orderId, userId) {
+  const { error } = await sb.from("premium_orders").update({ status: "approved" }).eq("id", orderId);
+  if (error) { showToast(error.message, true); return; }
+  if (userId) {
+    await sb.from("users").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", userId);
+  }
+  showToast("Order Approve ပြီး User Unlock ပြီးပါပြီ ✓");
+  loadPremiumOrders();
+  loadDevices();
+}
+async function rejectPremiumOrder(orderId) {
+  const { error } = await sb.from("premium_orders").update({ status: "rejected" }).eq("id", orderId);
+  if (!error) { showToast("Order ငြင်းပယ်လိုက်ပါပြီ"); loadPremiumOrders(); }
+  else showToast(error.message, true);
+}
+async function deletePremiumOrder(orderId) {
+  if (!confirm("ဒီ Order ကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb.from("premium_orders").delete().eq("id", orderId);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadPremiumOrders(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- VIP ORDERS (2D Site) ---------------- */
+async function loadVipOrders() {
+  const tbody = document.getElementById("vipOrdersTableBody");
+  const { data, error } = await sb2d.from("premium_orders").select("*").order("created_at", { ascending: false }).limit(100);
+  if (error) { if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Load မအောင်မြင်ပါ</td></tr>`; return; }
+  ALL_VIP_ORDERS = data;
+  renderVipOrdersTable();
+  updateStats();
+}
+
+function renderVipOrdersTable() {
+  const tbody = document.getElementById("vipOrdersTableBody");
+  if (!tbody) return;
+  if (ALL_VIP_ORDERS.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Order မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_VIP_ORDERS.map(vipOrderRowHtml).join("");
+
+  const pending = ALL_VIP_ORDERS.filter(o => (o.status || "pending") === "pending").length;
+  const badge = document.getElementById("pendingVipOrdersCount");
+  if (badge) { if (pending > 0) { badge.style.display = "inline-block"; badge.textContent = pending; } else badge.style.display = "none"; }
+}
+
+function vipOrderRowHtml(o) {
+  const methodLabel = o.payment_method === "kbz" ? "KBZ Pay" : o.payment_method === "wave" ? "Wave Pay" : (o.payment_method || "-");
+  const status = (o.status || "pending").toLowerCase();
+  const dateStr = o.created_at ? new Date(o.created_at).toLocaleString() : "-";
+  const img = o.screenshot_url
+    ? `<img class="order-thumb" src="${escapeHtml(o.screenshot_url)}" onclick="window.open('${escapeHtml(o.screenshot_url)}','_blank')">`
+    : `<span style="color:var(--muted); font-size:12px;">—</span>`;
+  return `
+    <tr>
+      <td>
+        <div class="row-title">${escapeHtml(o.user_name || "-")}</div>
+        <div class="row-sub"><code class="mono">${escapeHtml(o.user_id || "-")}</code></div>
+        <div class="row-sub">${escapeHtml(o.user_phone || "")}</div>
+      </td>
+      <td>
+        <div class="row-title">${escapeHtml(String(o.amount || "-"))} Ks</div>
+        <div class="row-sub">${escapeHtml(methodLabel)}</div>
+        <div class="row-sub">${dateStr}</div>
+      </td>
+      <td>${img}</td>
+      <td><span class="tag ${status}">${status}</span></td>
+      <td>
+        <div class="row-actions">
+          ${status !== 'approved' ? `<button class="icon-btn" onclick="approveVipOrder('${o.id}', '${escapeHtml(o.user_id || "")}')" title="Approve">✓</button>` : ''}
+          ${status !== 'rejected' ? `<button class="icon-btn" onclick="rejectVipOrder('${o.id}')" title="Reject">✕</button>` : ''}
+          <button class="icon-btn" onclick="deleteVipOrder('${o.id}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+async function approveVipOrder(orderId, vipId) {
+  const { error } = await sb2d.from("premium_orders").update({ status: "approved" }).eq("id", orderId);
+  if (error) { showToast(error.message, true); return; }
+  if (vipId) {
+    await sb2d.from("vip_users").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", vipId);
+  }
+  showToast("Order Approve ပြီး VIP Key Unlock ပြီးပါပြီ ✓");
+  loadVipOrders();
+  loadVipUsers();
+}
+async function rejectVipOrder(orderId) {
+  const { error } = await sb2d.from("premium_orders").update({ status: "rejected" }).eq("id", orderId);
+  if (!error) { showToast("Order ငြင်းပယ်လိုက်ပါပြီ"); loadVipOrders(); }
+  else showToast(error.message, true);
+}
+async function deleteVipOrder(orderId) {
+  if (!confirm("ဒီ Order ကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb2d.from("premium_orders").delete().eq("id", orderId);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadVipOrders(); }
+  else showToast(error.message, true);
+}
+
 /* ---------------- GIFT CARDS ---------------- */
 let ALL_GIFT_CARDS = [];
 const GIFTCARD_IMGBB_API_KEY = "7c5932aae46ee4b400a106f6d80d9631";
@@ -1062,7 +1280,74 @@ async function loadSettingsForm() {
   document.getElementById("settingsTelegram").value = link || "";
   const announcement = await dbGetSettingValue("site_announcement");
   document.getElementById("settingsAnnouncement").value = announcement || "";
+
+  const premiumPrice = await dbGetSettingValue("premium_price");
+  document.getElementById("settingsPremiumPrice").value = premiumPrice || "";
+  const kbzName = await dbGetSettingValue("kbz_name");
+  document.getElementById("settingsKbzName").value = kbzName || "";
+  const kbzNumber = await dbGetSettingValue("kbz_number");
+  document.getElementById("settingsKbzNumber").value = kbzNumber || "";
+  const waveName = await dbGetSettingValue("wave_name");
+  document.getElementById("settingsWaveName").value = waveName || "";
+  const waveNumber = await dbGetSettingValue("wave_number");
+  document.getElementById("settingsWaveNumber").value = waveNumber || "";
+
+  const vipPrice = await dbGetVipSettingValue("vip_price");
+  document.getElementById("settingsVipPrice").value = vipPrice || "";
+  const vipKbzName = await dbGetVipSettingValue("kbz_name");
+  document.getElementById("settingsVipKbzName").value = vipKbzName || "";
+  const vipKbzNumber = await dbGetVipSettingValue("kbz_number");
+  document.getElementById("settingsVipKbzNumber").value = vipKbzNumber || "";
+  const vipWaveName = await dbGetVipSettingValue("wave_name");
+  document.getElementById("settingsVipWaveName").value = vipWaveName || "";
+  const vipWaveNumber = await dbGetVipSettingValue("wave_number");
+  document.getElementById("settingsVipWaveNumber").value = vipWaveNumber || "";
 }
+
+async function dbGetVipSettingValue(key) {
+  const { data, error } = await sb2d.from("settings").select("value").eq("key", key).maybeSingle();
+  if (error || !data) return null;
+  return data.value;
+}
+
+async function savePremiumSettings() {
+  const price = document.getElementById("settingsPremiumPrice").value.trim();
+  const kbzName = document.getElementById("settingsKbzName").value.trim();
+  const kbzNumber = document.getElementById("settingsKbzNumber").value.trim();
+  const waveName = document.getElementById("settingsWaveName").value.trim();
+  const waveNumber = document.getElementById("settingsWaveNumber").value.trim();
+
+  const results = await Promise.all([
+    sb.from("settings").upsert({ key: "premium_price", value: price }, { onConflict: "key" }),
+    sb.from("settings").upsert({ key: "kbz_name", value: kbzName }, { onConflict: "key" }),
+    sb.from("settings").upsert({ key: "kbz_number", value: kbzNumber }, { onConflict: "key" }),
+    sb.from("settings").upsert({ key: "wave_name", value: waveName }, { onConflict: "key" }),
+    sb.from("settings").upsert({ key: "wave_number", value: waveNumber }, { onConflict: "key" }),
+  ]);
+  const failed = results.find(r => r.error);
+  if (failed) { showToast(failed.error.message, true); return; }
+  showToast("Premium Settings သိမ်းပြီးပါပြီ ✓");
+}
+
+async function saveVipSettings() {
+  const price = document.getElementById("settingsVipPrice").value.trim();
+  const kbzName = document.getElementById("settingsVipKbzName").value.trim();
+  const kbzNumber = document.getElementById("settingsVipKbzNumber").value.trim();
+  const waveName = document.getElementById("settingsVipWaveName").value.trim();
+  const waveNumber = document.getElementById("settingsVipWaveNumber").value.trim();
+
+  const results = await Promise.all([
+    sb2d.from("settings").upsert({ key: "vip_price", value: price }, { onConflict: "key" }),
+    sb2d.from("settings").upsert({ key: "kbz_name", value: kbzName }, { onConflict: "key" }),
+    sb2d.from("settings").upsert({ key: "kbz_number", value: kbzNumber }, { onConflict: "key" }),
+    sb2d.from("settings").upsert({ key: "wave_name", value: waveName }, { onConflict: "key" }),
+    sb2d.from("settings").upsert({ key: "wave_number", value: waveNumber }, { onConflict: "key" }),
+  ]);
+  const failed = results.find(r => r.error);
+  if (failed) { showToast(failed.error.message, true); return; }
+  showToast("VIP Settings သိမ်းပြီးပါပြီ ✓");
+}
+
 async function saveTelegramLink() {
   const link = document.getElementById("settingsTelegram").value.trim();
   const { error } = await sb.from("settings").update({ value: link }).eq("key", "telegram_link");
@@ -1157,16 +1442,18 @@ function updateStats() {
   document.getElementById("statFreeBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"free").toLowerCase()==="free").length;
   document.getElementById("statPremiumBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"").toLowerCase()==="premium").length;
   document.getElementById("statPendingDevices").textContent = ALL_DEVICES.filter(d => (d.Status||"").toLowerCase()==="pending").length;
+  document.getElementById("statPendingOrders").textContent = ALL_PREMIUM_ORDERS.filter(o => (o.status||"pending")==="pending").length;
   document.getElementById("statTotalGiftCards").textContent = ALL_GIFT_CARDS.length;
   document.getElementById("statVipGiftCards").textContent = ALL_GIFT_CARDS.filter(g => (g.Type||"free").toLowerCase()==="vip").length;
   document.getElementById("statPendingVip").textContent = ALL_VIP_USERS.filter(u => (u.Status||"").toLowerCase()==="pending").length;
+  document.getElementById("statPendingVipOrders").textContent = ALL_VIP_ORDERS.filter(o => (o.status||"pending")==="pending").length;
 }
 
 /* ---------------- INIT ---------------- */
 if (ADMIN_PASSWORD) {
-  // try auto-login with saved password
   checkAdminPassword(ADMIN_PASSWORD).then(ok => { if (ok) enterApp(); });
 }
 </script>
 </body>
 </html>
+ 

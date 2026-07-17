@@ -157,11 +157,10 @@
     <div class="brand"><span class="mark">စ</span> Admin</div>
     <div class="nav-item active" data-page="dashboard" onclick="goPage('dashboard')">📊 Dashboard</div>
     <div class="nav-item" data-page="books" onclick="goPage('books')">📚 Books</div>
-    <div class="nav-item" data-page="users" onclick="goPage('users')">👤 Users <span class="badge-count" id="pendingCount" style="display:none;"></span></div>
+    <div class="nav-item" data-page="bannerslider" onclick="goPage('bannerslider')">🖼️ Banner Slider</div>
     <div class="nav-item" data-page="premiumorders" onclick="goPage('premiumorders')">💳 Premium Orders <span class="badge-count" id="pendingOrdersCount" style="display:none;"></span></div>
     <div class="nav-item" data-page="notifications" onclick="goPage('notifications')">📣 Notifications</div>
     <div class="nav-item" data-page="giftcards" onclick="goPage('giftcards')">🎁 2D ဂဏန်းလက်ဆောင်</div>
-    <div class="nav-item" data-page="vipusers" onclick="goPage('vipusers')">👑 2D VIP Users <span class="badge-count" id="vipPendingCount" style="display:none;"></span></div>
     <div class="nav-item" data-page="viporders" onclick="goPage('viporders')">💳 VIP Orders (2D) <span class="badge-count" id="pendingVipOrdersCount" style="display:none;"></span></div>
     <div class="nav-item" data-page="settings" onclick="goPage('settings')">⚙️ Settings</div>
     <div class="sidebar-footer">
@@ -178,11 +177,9 @@
         <div class="stat-box"><div class="num" id="statTotalBooks">–</div><div class="label">စာအုပ်စုစုပေါင်း</div></div>
         <div class="stat-box"><div class="num" id="statFreeBooks">–</div><div class="label">Free စာအုပ်</div></div>
         <div class="stat-box"><div class="num" id="statPremiumBooks">–</div><div class="label">Premium စာအုပ်</div></div>
-        <div class="stat-box"><div class="num" id="statPendingDevices">–</div><div class="label">Pending Users (Book)</div></div>
         <div class="stat-box"><div class="num" id="statPendingOrders">–</div><div class="label">Pending Premium Orders</div></div>
         <div class="stat-box"><div class="num" id="statTotalGiftCards">–</div><div class="label">2D ဂဏန်းလက်ဆောင် Post စုစုပေါင်း</div></div>
         <div class="stat-box"><div class="num" id="statVipGiftCards">–</div><div class="label">VIP Post</div></div>
-        <div class="stat-box"><div class="num" id="statPendingVip">–</div><div class="label">Pending VIP Users</div></div>
         <div class="stat-box"><div class="num" id="statPendingVipOrders">–</div><div class="label">Pending VIP Orders (2D)</div></div>
       </div>
       <div class="card-panel">
@@ -221,16 +218,32 @@
       </div>
     </div>
 
-    <!-- USERS -->
-    <div class="page" id="page-users">
+    <!-- BANNER SLIDER -->
+    <div class="page" id="page-bannerslider">
       <div class="page-head">
-        <div><h2>Users</h2><p>Register လုပ်ထားသော User အကောင့်များ</p></div>
-        <button class="btn secondary" style="width:auto;" onclick="loadDevices()">Refresh</button>
+        <div><h2>Banner Slider</h2><p>User Site Home page ထိပ်ဆုံးက Image Slider ပုံများ ထိန်းချုပ်ရန်</p></div>
+      </div>
+      <div class="card-panel">
+        <div class="field">
+          <label>Slide အများဆုံး အရေအတွက် (Max Slides)</label>
+          <input type="number" id="bannerMaxSlides" min="1" max="10" placeholder="ဥပမာ - 5">
+        </div>
+        <button class="btn secondary" style="width:auto;" onclick="saveBannerMaxSlides()">သိမ်းမယ်</button>
+        <p style="color:var(--muted); font-size:12.5px; margin-top:10px;" id="bannerCountInfo"></p>
+      </div>
+      <div class="card-panel">
+        <div class="field">
+          <label>Slide ပုံအသစ် တင်မယ် (Link URL — မထည့်လည်းရ)</label>
+          <input type="text" id="bannerLinkInput" placeholder="https://... (နှိပ်လိုက်ရင် ဒီလင့်ကို ဖွင့်ပေးမယ်၊ မလိုအပ်ရင် ချန်ထားပါ)">
+        </div>
+        <input type="file" id="bannerFileInput" accept="image/*" style="display:none;" onchange="handleBannerFileSelect(event)">
+        <button class="btn" style="width:auto;" onclick="document.getElementById('bannerFileInput').click()">+ Slide ပုံ တင်မယ်</button>
+        <p id="bannerUploadStatus" style="margin-top:10px; font-size:13px;"></p>
       </div>
       <div class="card-panel" style="padding:0;">
         <table>
-          <thead><tr><th>User ID</th><th>အမည် / ဖုန်း</th><th>Status</th><th style="width:150px;">Actions</th></tr></thead>
-          <tbody id="devicesTableBody"><tr><td colspan="4" class="empty-row">Loading...</td></tr></tbody>
+          <thead><tr><th>Preview</th><th>Link</th><th>အစဉ်</th><th style="width:150px;">Actions</th></tr></thead>
+          <tbody id="bannerSlidesTableBody"><tr><td colspan="4" class="empty-row">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -295,20 +308,6 @@
         <table>
           <thead><tr><th>Title / Description</th><th style="width:110px;">Actions</th></tr></thead>
           <tbody id="giftCardsTableBody"><tr><td colspan="2" class="empty-row">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 2D VIP USERS -->
-    <div class="page" id="page-vipusers">
-      <div class="page-head">
-        <div><h2>2D VIP Users</h2><p>2D ဂဏန်းလက်ဆောင် VIP Post ဖတ်ဖို့ Register လုပ်ထားသော User အကောင့်များ</p></div>
-        <button class="btn secondary" style="width:auto;" onclick="loadVipUsers()">Refresh</button>
-      </div>
-      <div class="card-panel" style="padding:0;">
-        <table>
-          <thead><tr><th>VIP Key</th><th>အမည် / ဖုန်း</th><th>Status</th><th style="width:150px;">Actions</th></tr></thead>
-          <tbody id="vipUsersTableBody"><tr><td colspan="4" class="empty-row">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -562,11 +561,11 @@ function goPage(name) {
 
 function loadAll() {
   loadBooks();
+  loadBannerSlider();
   loadDevices();
   loadSettingsForm();
   loadNotifications();
   loadGiftCards();
-  loadVipUsers();
   loadPremiumOrders();
   loadVipOrders();
 }
@@ -858,131 +857,123 @@ async function deleteChapter(chapterId) {
   else showToast(error.message, true);
 }
 
-/* ---------------- USERS ---------------- */
+/* ---------------- BANNER SLIDER ---------------- */
+const BANNER_IMGBB_API_KEY = "a068780fe4b78b3bc5e5989810cdf1c3";
+let ALL_BANNER_SLIDES = [];
+let BANNER_MAX_SLIDES = 5;
+
+async function loadBannerSlider() {
+  const maxSetting = await sb.from("settings").select("value").eq("key", "banner_max_slides").maybeSingle();
+  BANNER_MAX_SLIDES = Number(maxSetting.data?.value) || 5;
+  document.getElementById("bannerMaxSlides").value = BANNER_MAX_SLIDES;
+
+  const { data, error } = await sb.from("banner_slides").select("*").order("sort_order", { ascending: true });
+  const tbody = document.getElementById("bannerSlidesTableBody");
+  if (error) { if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Load မအောင်မြင်ပါ</td></tr>`; return; }
+  ALL_BANNER_SLIDES = data || [];
+  renderBannerSlidesTable();
+}
+
+function renderBannerSlidesTable() {
+  const tbody = document.getElementById("bannerSlidesTableBody");
+  if (!tbody) return;
+  document.getElementById("bannerCountInfo").textContent =
+    `လက်ရှိ Slide ${ALL_BANNER_SLIDES.length} / ${BANNER_MAX_SLIDES} ခု`;
+  if (ALL_BANNER_SLIDES.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Slide ပုံ မရှိသေးပါ</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ALL_BANNER_SLIDES.map((s, i) => `
+    <tr>
+      <td><img src="${escapeHtml(s.image_url)}" style="width:90px; height:50px; object-fit:cover; border-radius:8px;"></td>
+      <td>${s.link_url ? `<span class="row-sub">${escapeHtml(s.link_url)}</span>` : `<span style="color:var(--muted); font-size:12px;">—</span>`}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" ${i === 0 ? "disabled" : ""} onclick="moveBannerSlide('${s.id}', -1)" title="အပေါ်ရွှေ့">↑</button>
+          <button class="icon-btn" ${i === ALL_BANNER_SLIDES.length - 1 ? "disabled" : ""} onclick="moveBannerSlide('${s.id}', 1)" title="အောက်ရွှေ့">↓</button>
+        </div>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="deleteBannerSlide('${s.id}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>`).join("");
+}
+
+async function saveBannerMaxSlides() {
+  const val = Number(document.getElementById("bannerMaxSlides").value) || 5;
+  const { error } = await sb.from("settings").upsert({ key: "banner_max_slides", value: String(val) }, { onConflict: "key" });
+  if (error) { showToast(error.message, true); return; }
+  BANNER_MAX_SLIDES = val;
+  showToast("Max Slides Setting သိမ်းပြီးပါပြီ ✓");
+  renderBannerSlidesTable();
+}
+
+async function handleBannerFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = "";
+
+  if (ALL_BANNER_SLIDES.length >= BANNER_MAX_SLIDES) {
+    showToast(`Max Slide အရေအတွက် (${BANNER_MAX_SLIDES}) ပြည့်နေပါပြီ။ အရင် Slide တစ်ခုခု ဖျက်ပါ (သို့) Max ကို တိုးပါ။`, true);
+    return;
+  }
+
+  const statusEl = document.getElementById("bannerUploadStatus");
+  statusEl.innerHTML = `<span class="spin-small"></span> ပုံ ညှစ်ပြီး Upload တင်နေသည်...`;
+  try {
+    const compressed = await compressImage(file, 1200, 0.85);
+    const base64Only = compressed.split(",")[1];
+    const fd = new FormData();
+    fd.append("key", BANNER_IMGBB_API_KEY);
+    fd.append("image", base64Only);
+    const res = await fetch("https://api.imgbb.com/1/upload", { method: "POST", body: fd });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error?.message || "Upload မအောင်မြင်ပါ");
+    const imageUrl = json.data.url;
+
+    const linkUrl = document.getElementById("bannerLinkInput").value.trim();
+    const maxSort = ALL_BANNER_SLIDES.reduce((m, s) => Math.max(m, s.sort_order || 0), 0);
+    const { error } = await sb.from("banner_slides").insert({
+      image_url: imageUrl, link_url: linkUrl || null, sort_order: maxSort + 1,
+    });
+    if (error) throw error;
+
+    document.getElementById("bannerLinkInput").value = "";
+    statusEl.textContent = "";
+    showToast("Slide ပုံ တင်ပြီးပါပြီ ✓ — User Site မှာ ချက်ချင်း ပေါ်ပါလိမ့်မယ်");
+    loadBannerSlider();
+  } catch (e) {
+    statusEl.innerHTML = `<span style="color:var(--danger);">${escapeHtml(e.message)}</span>`;
+  }
+}
+
+async function moveBannerSlide(id, dir) {
+  const idx = ALL_BANNER_SLIDES.findIndex(s => s.id === id);
+  const swapIdx = idx + dir;
+  if (idx < 0 || swapIdx < 0 || swapIdx >= ALL_BANNER_SLIDES.length) return;
+  const a = ALL_BANNER_SLIDES[idx], b = ALL_BANNER_SLIDES[swapIdx];
+  await sb.from("banner_slides").update({ sort_order: b.sort_order }).eq("id", a.id);
+  await sb.from("banner_slides").update({ sort_order: a.sort_order }).eq("id", b.id);
+  loadBannerSlider();
+}
+
+async function deleteBannerSlide(id) {
+  if (!confirm("ဒီ Slide ပုံကို ဖျက်မှာ သေချာပါသလား?")) return;
+  const { error } = await sb.from("banner_slides").delete().eq("id", id);
+  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadBannerSlider(); }
+  else showToast(error.message, true);
+}
+
+/* ---------------- USERS (background data for Notification target dropdown) ---------------- */
 async function loadDevices() {
   const { data, error } = await sb.from("users").select("*").order("created_at", { ascending: false });
   if (error) { showToast("Users load မအောင်မြင်ပါ", true); return; }
   ALL_DEVICES = data.map(u => ({
     UserID: u.id, Name: u.name, Phone: u.phone, Status: u.status, CreatedAt: u.created_at, ApprovedAt: u.approved_at,
   }));
-  renderDevicesTable();
-  updateStats();
-}
-
-function renderDevicesTable() {
-  const tbody = document.getElementById("devicesTableBody");
-  if (ALL_DEVICES.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-row">User Register မရှိသေးပါ</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = ALL_DEVICES.map(u => {
-    const status = (u.Status || "pending").toLowerCase();
-    return `
-      <tr>
-        <td><code class="mono">${escapeHtml(u.UserID)}</code></td>
-        <td>
-          <div class="row-title">${escapeHtml(u.Name || "")}</div>
-          <div class="row-sub">${escapeHtml(u.Phone || "")}</div>
-        </td>
-        <td><span class="tag ${status}">${status}</span></td>
-        <td>
-          <div class="row-actions">
-            ${status !== 'approved' ? `<button class="icon-btn" onclick="approveDevice('${u.UserID}')" title="Approve">✓</button>` : ''}
-            ${status !== 'rejected' ? `<button class="icon-btn" onclick="rejectDevice('${u.UserID}')" title="Reject">✕</button>` : ''}
-            <button class="icon-btn" onclick="deleteDevice('${u.UserID}')" title="Delete">🗑</button>
-          </div>
-        </td>
-      </tr>`;
-  }).join("");
-
-  const pending = ALL_DEVICES.filter(u => (u.Status || "").toLowerCase() === "pending").length;
-  const badge = document.getElementById("pendingCount");
-  if (pending > 0) { badge.style.display = "inline-block"; badge.textContent = pending; }
-  else badge.style.display = "none";
-
   populateNotifTargetDropdown();
-}
-
-async function approveDevice(userId) {
-  const { error } = await sb.from("users").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", userId);
-  if (!error) { showToast("User Unlock ပြီးပါပြီ ✓"); loadDevices(); }
-  else showToast(error.message, true);
-}
-async function rejectDevice(userId) {
-  const { error } = await sb.from("users").update({ status: "rejected" }).eq("id", userId);
-  if (!error) { showToast("ငြင်းပယ်လိုက်ပါပြီ"); loadDevices(); }
-  else showToast(error.message, true);
-}
-async function deleteDevice(userId) {
-  if (!confirm("ဒီ User Account ကို ဖျက်မှာ သေချာပါသလား?")) return;
-  const { error } = await sb.from("users").delete().eq("id", userId);
-  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadDevices(); }
-  else showToast(error.message, true);
-}
-
-/* ---------------- 2D VIP USERS ---------------- */
-let ALL_VIP_USERS = [];
-
-async function loadVipUsers() {
-  const { data, error } = await sb2d.from("vip_users").select("*").order("created_at", { ascending: false });
-  if (error) { showToast("VIP Users load မအောင်မြင်ပါ", true); return; }
-  ALL_VIP_USERS = data.map(u => ({
-    UserID: u.id, Name: u.name, Phone: u.phone, Status: u.status, CreatedAt: u.created_at, ApprovedAt: u.approved_at,
-  }));
-  renderVipUsersTable();
-  updateStats();
-}
-
-function renderVipUsersTable() {
-  const tbody = document.getElementById("vipUsersTableBody");
-  if (!tbody) return;
-  if (ALL_VIP_USERS.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="empty-row">VIP Register မရှိသေးပါ</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = ALL_VIP_USERS.map(u => {
-    const status = (u.Status || "pending").toLowerCase();
-    return `
-      <tr>
-        <td><code class="mono">${escapeHtml(u.UserID)}</code></td>
-        <td>
-          <div class="row-title">${escapeHtml(u.Name || "")}</div>
-          <div class="row-sub">${escapeHtml(u.Phone || "")}</div>
-        </td>
-        <td><span class="tag ${status}">${status}</span></td>
-        <td>
-          <div class="row-actions">
-            ${status !== 'approved' ? `<button class="icon-btn" onclick="approveVipUser('${u.UserID}')" title="Approve">✓</button>` : ''}
-            ${status !== 'rejected' ? `<button class="icon-btn" onclick="rejectVipUser('${u.UserID}')" title="Reject">✕</button>` : ''}
-            <button class="icon-btn" onclick="deleteVipUser('${u.UserID}')" title="Delete">🗑</button>
-          </div>
-        </td>
-      </tr>`;
-  }).join("");
-
-  const pending = ALL_VIP_USERS.filter(u => (u.Status || "").toLowerCase() === "pending").length;
-  const badge = document.getElementById("vipPendingCount");
-  if (badge) {
-    if (pending > 0) { badge.style.display = "inline-block"; badge.textContent = pending; }
-    else badge.style.display = "none";
-  }
-}
-
-async function approveVipUser(userId) {
-  const { error } = await sb2d.from("vip_users").update({ status: "approved", approved_at: new Date().toISOString() }).eq("id", userId);
-  if (!error) { showToast("VIP Key Unlock ပြီးပါပြီ ✓"); loadVipUsers(); }
-  else showToast(error.message, true);
-}
-async function rejectVipUser(userId) {
-  const { error } = await sb2d.from("vip_users").update({ status: "rejected" }).eq("id", userId);
-  if (!error) { showToast("ငြင်းပယ်လိုက်ပါပြီ"); loadVipUsers(); }
-  else showToast(error.message, true);
-}
-async function deleteVipUser(userId) {
-  if (!confirm("ဒီ VIP Account ကို ဖျက်မှာ သေချာပါသလား?")) return;
-  const { error } = await sb2d.from("vip_users").delete().eq("id", userId);
-  if (!error) { showToast("ဖျက်ပြီးပါပြီ"); loadVipUsers(); }
-  else showToast(error.message, true);
 }
 
 /* ---------------- PREMIUM ORDERS (Book Site) ---------------- */
@@ -1125,7 +1116,6 @@ async function approveVipOrder(orderId, vipId) {
   }
   showToast("Order Approve ပြီး VIP Key Unlock ပြီးပါပြီ ✓");
   loadVipOrders();
-  loadVipUsers();
 }
 async function rejectVipOrder(orderId) {
   const { error } = await sb2d.from("premium_orders").update({ status: "rejected" }).eq("id", orderId);
@@ -1441,11 +1431,9 @@ function updateStats() {
   document.getElementById("statTotalBooks").textContent = ALL_BOOKS.length;
   document.getElementById("statFreeBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"free").toLowerCase()==="free").length;
   document.getElementById("statPremiumBooks").textContent = ALL_BOOKS.filter(b => (b.Type||"").toLowerCase()==="premium").length;
-  document.getElementById("statPendingDevices").textContent = ALL_DEVICES.filter(d => (d.Status||"").toLowerCase()==="pending").length;
   document.getElementById("statPendingOrders").textContent = ALL_PREMIUM_ORDERS.filter(o => (o.status||"pending")==="pending").length;
   document.getElementById("statTotalGiftCards").textContent = ALL_GIFT_CARDS.length;
   document.getElementById("statVipGiftCards").textContent = ALL_GIFT_CARDS.filter(g => (g.Type||"free").toLowerCase()==="vip").length;
-  document.getElementById("statPendingVip").textContent = ALL_VIP_USERS.filter(u => (u.Status||"").toLowerCase()==="pending").length;
   document.getElementById("statPendingVipOrders").textContent = ALL_VIP_ORDERS.filter(o => (o.status||"pending")==="pending").length;
 }
 
@@ -1456,4 +1444,3 @@ if (ADMIN_PASSWORD) {
 </script>
 </body>
 </html>
- 
